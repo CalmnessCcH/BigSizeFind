@@ -1,5 +1,4 @@
 #!/usr/bin/python
-
 import json
 import sys   
 import os
@@ -11,6 +10,9 @@ sys.setdefaultencoding('utf8')
 sys.setrecursionlimit(1000000)
 
 def quickSort(lists, key, left, right):
+    '''
+    sort the json list by asize
+    '''
     if left >= right:
         return lists
     flag = lists[left]
@@ -28,19 +30,23 @@ def quickSort(lists, key, left, right):
     quickSort(lists, key, left + 1, high)
     return lists
 
-def formatDirInfo(sourceList, resultList):
+def formatDirInfo(sourceList, resultList, ignore):
+    '''
+    format ncdu output json
+    '''
     route = sourceList[0]['name']
-    for node in sourceList:
+    for index, node in enumerate(sourceList):
         if isinstance(node, dict):
             if node['name'] != route:
                 node['name'] = "%s/%s" % (route, node['name'])
             if not 'asize' in node:
                 node['asize'] = 0
-            resultList.append(node) 
+            if index != 0 or not ignore:
+                resultList.append(node) 
         elif isinstance(node, list):
             if node[0]['name'] != route:
                 node[0]['name'] = "%s/%s" % (route, node[0]['name'])
-            formatDirInfo(node, resultList)
+            formatDirInfo(node, resultList, ignore)
         else:
             pass
     return resultList
@@ -82,7 +88,7 @@ if __name__ == '__main__':
         jsonStr = recive['stdout']
         sourceList = json.loads(jsonStr)[3]
         resultList = []
-        resultList = formatDirInfo(sourceList, resultList)
+        resultList = formatDirInfo(sourceList, resultList, ignore)
         key = "asize"
         result = quickSort(resultList, key, 0, len(resultList) - 1)
 
